@@ -1,0 +1,20 @@
+kubectl config get-contexts
+kubectl config view
+##generate a new user using OpenSSL
+openssl genrsa -out john.key 2048
+
+## Kubernetes will use the Organization (O=examplegroup), create a csr
+openssl req -new -key john.key -out john.csr -subj "/CN=john/O=examplegroup"
+
+## sign this CSR using the root Kubernetes CA, found in /etc/kubernetes/pki
+openssl x509 -req -in john.csr -CA /etc/kubernetes/pki/ca.crt -CAkey /etc/kubernetes/pki/ca.key -CAcreateserial -out john.crt
+
+## now register the new credentials and config context
+kubectl config set-credentials john --client-certificate=/home/newusers/john.crt --embed-certs=true --client-key=/home/newusers/john.key
+kubectl config set-context john@kubernetes --cluster=kubernetes --user=john
+kubectl config get-contexts
+
+##Create RBAC policy for the newly created user
+kubectl config use-context kubernetes-admin@kubernetes
+kubectl create clusterrolebinding examplegroup-admin-binding --clusterrole=cluster-admin --group=examplegroup
+kubectl config use-context john@kubernetes
