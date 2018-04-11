@@ -1,3 +1,5 @@
+###Creating a new kubernetes user and provide access to existing cluster
+
 kubectl config get-contexts
 kubectl config view
 ##generate a new user using OpenSSL
